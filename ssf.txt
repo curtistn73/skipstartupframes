@@ -1716,7 +1716,7 @@ p47aces,286
 pacapp,967
 pachiten,656
 pacland,158
-pacman,290
+pacman,300
 pacmania,120
 pacnpal,803
 pacplus,292
