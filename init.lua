@@ -36,40 +36,30 @@ local settings = {}
 --   end
 -- end
 
-local frames = {}
-
--- Find the frames file
-local frames_path = plugin_directory .. "/ssf.txt"
-local frames_file = io.open(frames_path, "r")
-
--- Read in and parse the frames file
-if frames_file ~= nil then
-  frames_file = frames_file:read("*a")
-
-  -- Split lines
-  for line in frames_file:gmatch("[^\r\n]+") do
-    -- Split on comma
-    local key, value = line:match("([^,]+),([^,]+)")
-
-    -- Add rom and frame count to frames table
-    if (key ~= nil and value ~= nil) then
-      frames[key] = tonumber(value)
-    end
-
-  end
-end
-
--- Notifiers
-local startNotifier = nil
-local stopNotifier = nil
-
--- function draw_text_overlay(screen, x, y, text)
---   screen:draw_text(x, y, text, 0xffffffff, 0xff000000)
--- end
-
-local process_frame = function() end
-
 function skipstartupframes.startplugin()
+
+  local frames = {}
+
+  -- Find the frames file
+  local frames_path = plugin_directory .. "/ssf.txt"
+  local frames_file = io.open(frames_path, "r")
+
+  -- Read in and parse the frames file
+  if frames_file ~= nil then
+    frames_file = frames_file:read("*a")
+
+    -- Split lines
+    for line in frames_file:gmatch("[^\r\n]+") do
+      -- Split on comma
+      local key, value = line:match("([^,]+),([^,]+)")
+
+      -- Add rom and frame count to frames table
+      if (key ~= nil and value ~= nil) then
+        frames[key] = tonumber(value)
+      end
+
+    end
+  end
 
   -- If no ssf.txt file found, don't do anything
   if frames_file == nil then
@@ -77,6 +67,18 @@ function skipstartupframes.startplugin()
     return
   end
 
+  -- Notifiers
+  local startNotifier = nil
+  local stopNotifier = nil
+
+  -- function draw_text_overlay(screen, x, y, text)
+  --   screen:draw_text(x, y, text, 0xffffffff, 0xff000000)
+  -- end
+
+  -- Initialize frame processing function to do nothing
+  local process_frame = function() end
+
+  -- Trampoline function to process each frame
   emu.register_frame_done(function()
     -- frame = frame + 1
     -- process_frame(screen, centerX, centerY, "ROM: "..rom.." Frame: "..frame)
@@ -105,20 +107,25 @@ function skipstartupframes.startplugin()
       end
 
       -- Setup frame placement and counter
-      -- screen = manager.machine.screens[':screen']
+      screen = manager.machine.screens[':screen']
       -- centerX = screen.width / 2
       -- centerY = screen.height / 2
+
+      -- Enable throttling
+      manager.machine.video.throttled = false
+
+      -- Mute sound
+      manager.machine.sound.system_mute = true
+
       frame = 0
 
+      -- Process each frame
       process_frame = function()
+        -- Black out screen
+        screen:draw_box(0, 0, screen.width, screen.height, 0x00000000, 0xff000000)
+
         -- Iterate frame count
         frame = frame + 1
-
-        -- Enable throttling
-        manager.machine.video.throttled = false
-
-        -- Mute sound
-        manager.machine.sound.system_mute = true
 
         -- Frame target reached
         if (frame >= frameTarget) then
@@ -129,6 +136,7 @@ function skipstartupframes.startplugin()
           -- Unmute sound
           manager.machine.sound.system_mute = false
 
+          -- Reset frame processing function to do nothing when frame target is reached
           process_frame = function() end
         end
       end
@@ -136,6 +144,7 @@ function skipstartupframes.startplugin()
       return
     end)
 
+    -- Reset frame processing function to do nothing when emulation ends
     stopNotifier = emu.add_machine_stop_notifier(function()
       process_frame = function() end
     end)
