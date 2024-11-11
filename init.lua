@@ -188,23 +188,15 @@ function skipstartupframes.startplugin()
   --   print(index, entry)
   -- end
 
-  -- Check MAME version compatibility of notifier functions
-  -- MAME 0.254 and newer compatibility
+  -- MAME 0.254 and newer compatibility check
   if emu.add_machine_reset_notifier ~= nil and emu.add_machine_stop_notifier ~= nil then
 
     startNotifier = emu.add_machine_reset_notifier(start)
     stopNotifier = emu.add_machine_stop_notifier(stop)
 
-  -- MAME 0.253 and older compatibility
-  elseif emu.register_start ~= nil and emu.register_stop ~= nil then
-
-    -- start_handler = emu.register_start
-    -- stop_handler = emu.register_stop
-    -- frame_handler = emu.register_frame
-
   else
     -- MAME version not compatible (probably can't even load LUA plugins anyways)
-    print("Skip Startup Frames plugin is not compatible with this version of MAME.")
+    print("Skip Startup Frames plugin requires at least MAME 0.254")
     return
   end
 
