@@ -46,7 +46,7 @@ function skipstartupframes.startplugin()
   local mute = true
   local parentFallback = true
   local debug = false
-  local debugSlow = false
+  local debugSpeed = 0.25
 
   -- Find the frames file
   local frames_path = plugin_directory .. "/ssf.txt"
@@ -128,8 +128,8 @@ function skipstartupframes.startplugin()
     end
 
     -- Slow-Motion Debug Mode
-    if debug and debugSlow then
-      manager.machine.video.throttle_rate = 0.25
+    if debug and debugSpeed ~= 1 then
+      manager.machine.video.throttle_rate = debugSpeed
     end
 
     -- Starting frame
