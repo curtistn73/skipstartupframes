@@ -42,9 +42,9 @@ local stopNotifier = nil
 
 function skipstartupframes.startplugin()
   -- Settings
-  local debug = true
+  local debug = false
   local blackout = true
-  local mute = true
+  local parentFallback = true
 
   -- Find the frames file
   local frames_path = plugin_directory .. "/ssf.txt"
@@ -68,17 +68,11 @@ function skipstartupframes.startplugin()
     end
   end
 
-  -- function draw_text_overlay(screen, x, y, text)
-  --   screen:draw_text(x, y, text, 0xffffffff, 0xff000000)
-  -- end
-
   -- Initialize frame processing function to do nothing
   local process_frame = function() end
 
   -- Trampoline function to process each frame
   emu.register_frame_done(function()
-    -- frame = frame + 1
-    -- process_frame(screen, centerX, centerY, "ROM: "..rom.." Frame: "..frame)
     process_frame()
   end)
 
@@ -91,27 +85,39 @@ function skipstartupframes.startplugin()
     end
 
     -- Fetch frame count for rom from ssf.txt
-    local frameTarget = frames[tostring(rom)]
+    local frameTarget = frames[rom]
 
-    -- If the rom was not found in SSF.txt, don't do anything
-    if frameTarget == nil and debug == false then
-      return
+    -- If the rom was not found in SSF.txt...
+    if frameTarget == nil and not debug then
+
+      -- If parent rom fallback is disabled, don't do anything
+      if not parentFallback then
+        return
+      end
+
+      -- Look for parent ROM
+      local parent = emu.driver_find(rom).parent
+
+      -- No parent found, don't do anything
+      if parent == "0" then
+        return
+      end
+
+      -- Fetch frame count for parent rom from ssf.txt
+      frameTarget = frames[parent]
+
+      -- No frame count found for parent rom, don't do anything
+      if frameTarget == nil then
+        return
+      end
     end
 
-    print("Skipping "..frameTarget.." frames for "..rom)
-
-    -- Setup frame placement and counter
+    -- Screen info
     local screen = manager.machine.screens[':screen']
-    -- centerX = screen.width / 2
-    -- centerY = screen.height / 2
 
-    -- Enable throttling
-    if debug == false then
+    -- Enable throttling and mute audio
+    if not debug then
       manager.machine.video.throttled = false
-    end
-
-    -- Mute sound
-    if mute and debug == false then
       manager.machine.sound.system_mute = true
     end
 
@@ -120,21 +126,23 @@ function skipstartupframes.startplugin()
 
     -- Process each frame
     process_frame = function()
-      -- Draw debug frame text
+      -- Draw debug frame text if in debug mode
       if debug then
         screen:draw_text(0, 0, "ROM: "..rom.." Frame: "..frame, 0xffffffff, 0xff000000)
       end
 
-      -- Black out screen
-      if blackout and debug == false then
+      -- Black out screen only when not in debug mode
+      if blackout and not debug then
         screen:draw_box(0, 0, screen.width, screen.height, 0x00000000, 0xff000000)
       end
 
-      -- Iterate frame count
-      frame = frame + 1
+      -- Iterate frame count only when not in debug mode and machine is not paused
+      if not debug or not manager.machine.paused then
+        frame = frame + 1
+      end
 
       -- Frame target reached
-      if (frame >= frameTarget) then
+      if not debug and frame >= frameTarget then
 
         -- Re-enable throttling
         manager.machine.video.throttled = true
