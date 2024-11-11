@@ -42,9 +42,11 @@ local stopNotifier = nil
 
 function skipstartupframes.startplugin()
   -- Settings
-  local debug = false
   local blackout = true
+  local mute = true
   local parentFallback = true
+  local debug = false
+  local debugSlow = false
 
   -- Find the frames file
   local frames_path = plugin_directory .. "/ssf.txt"
@@ -115,10 +117,19 @@ function skipstartupframes.startplugin()
     -- Screen info
     local screen = manager.machine.screens[':screen']
 
-    -- Enable throttling and mute audio
+    -- Enable throttling
     if not debug then
       manager.machine.video.throttled = false
+    end
+
+    -- Mute sound
+    if mute and not debug then
       manager.machine.sound.system_mute = true
+    end
+
+    -- Slow-Motion Debug Mode
+    if debug and debugSlow then
+      manager.machine.video.throttle_rate = 0.25
     end
 
     -- Starting frame
