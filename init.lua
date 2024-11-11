@@ -36,15 +36,22 @@ local settings = {}
 --   end
 -- end
 
-function skipstartupframes.startplugin()
+-- Notifiers
+local startNotifier = nil
+local stopNotifier = nil
 
-  local frames = {}
+function skipstartupframes.startplugin()
+  -- Settings
+  local debug = true
+  local blackout = true
+  local mute = true
 
   -- Find the frames file
   local frames_path = plugin_directory .. "/ssf.txt"
   local frames_file = io.open(frames_path, "r")
 
   -- Read in and parse the frames file
+  local frames = {}
   if frames_file ~= nil then
     frames_file = frames_file:read("*a")
 
@@ -61,16 +68,6 @@ function skipstartupframes.startplugin()
     end
   end
 
-  -- If no ssf.txt file found, don't do anything
-  if frames_file == nil then
-    print("No ssf.txt file found")
-    return
-  end
-
-  -- Notifiers
-  local startNotifier = nil
-  local stopNotifier = nil
-
   -- function draw_text_overlay(screen, x, y, text)
   --   screen:draw_text(x, y, text, 0xffffffff, 0xff000000)
   -- end
@@ -85,76 +82,117 @@ function skipstartupframes.startplugin()
     process_frame()
   end)
 
+  local start = function()
+    local rom = emu.romname()
+
+    -- If no rom is loaded, don't do anything
+    if rom == "___empty" then
+      return
+    end
+
+    -- Fetch frame count for rom from ssf.txt
+    local frameTarget = frames[tostring(rom)]
+
+    -- If the rom was not found in SSF.txt, don't do anything
+    if frameTarget == nil and debug == false then
+      return
+    end
+
+    print("Skipping "..frameTarget.." frames for "..rom)
+
+    -- Setup frame placement and counter
+    local screen = manager.machine.screens[':screen']
+    -- centerX = screen.width / 2
+    -- centerY = screen.height / 2
+
+    -- Enable throttling
+    if debug == false then
+      manager.machine.video.throttled = false
+    end
+
+    -- Mute sound
+    if mute and debug == false then
+      manager.machine.sound.system_mute = true
+    end
+
+    -- Starting frame
+    local frame = 0
+
+    -- Process each frame
+    process_frame = function()
+      -- Draw debug frame text
+      if debug then
+        screen:draw_text(0, 0, "ROM: "..rom.." Frame: "..frame, 0xffffffff, 0xff000000)
+      end
+
+      -- Black out screen
+      if blackout and debug == false then
+        screen:draw_box(0, 0, screen.width, screen.height, 0x00000000, 0xff000000)
+      end
+
+      -- Iterate frame count
+      frame = frame + 1
+
+      -- Frame target reached
+      if (frame >= frameTarget) then
+
+        -- Re-enable throttling
+        manager.machine.video.throttled = true
+
+        -- Unmute sound
+        manager.machine.sound.system_mute = false
+
+        -- Reset frame processing function to do nothing when frame target is reached
+        process_frame = function() end
+      end
+    end
+
+    return
+  end
+
+  local stop = function()
+    process_frame = function() end
+  end
+
+
+
+
+  -- Setup Plugin Options Menu
+  -- emu.register_menu(menu_callback, menu_populate, _p("plugin-skipstartupframes", "Skip Startup Frames"))
+
+  -- local menu_populate = function()
+
+  --   local mute
+  --   local blackout
+  --   local debug
+
+  --   local result = {}
+  --   table.insert(result, { 'Skip Startup Frames', '', 'off' })
+  --   table.insert(result, { '---', '', '' })
+  --   -- table.insert(result, { _p("plugin-skipstartupframes", "Mute Sound"), mute, "off" })
+  --   -- table.insert(result, { _p("plugin-skipstartupframes", "Black Out Screen"), blackout, "off" })
+  --   -- table.insert(result, { _p("plugin-skipstartupframes", "Debug"), debug, "off" })
+
+  --   return result
+  -- end
+
+  -- local menu_callback = function(index, entry)
+  --   print(index, entry)
+  -- end
+
   -- Check MAME version compatibility of notifier functions
   -- MAME 0.254 and newer compatibility
   if emu.add_machine_reset_notifier ~= nil and emu.add_machine_stop_notifier ~= nil then
 
-    startNotifier = emu.add_machine_reset_notifier(function()
-
-      rom = emu.romname()
-
-      -- If no rom is loaded, don't do anything
-      if rom == "___empty" then
-        return
-      end
-
-      -- Fetch frame count for rom from ssr.txt
-      frameTarget = frames[tostring(rom)]
-
-      -- If the rom was not found in SSF.txt, don't do anything
-      if frameTarget == nil then
-        return
-      end
-
-      -- Setup frame placement and counter
-      screen = manager.machine.screens[':screen']
-      -- centerX = screen.width / 2
-      -- centerY = screen.height / 2
-
-      -- Enable throttling
-      manager.machine.video.throttled = false
-
-      -- Mute sound
-      manager.machine.sound.system_mute = true
-
-      frame = 0
-
-      -- Process each frame
-      process_frame = function()
-        -- Black out screen
-        screen:draw_box(0, 0, screen.width, screen.height, 0x00000000, 0xff000000)
-
-        -- Iterate frame count
-        frame = frame + 1
-
-        -- Frame target reached
-        if (frame >= frameTarget) then
-
-          -- Re-enable throttling
-          manager.machine.video.throttled = true
-
-          -- Unmute sound
-          manager.machine.sound.system_mute = false
-
-          -- Reset frame processing function to do nothing when frame target is reached
-          process_frame = function() end
-        end
-      end
-
-      return
-    end)
-
-    -- Reset frame processing function to do nothing when emulation ends
-    stopNotifier = emu.add_machine_stop_notifier(function()
-      process_frame = function() end
-    end)
+    startNotifier = emu.add_machine_reset_notifier(start)
+    stopNotifier = emu.add_machine_stop_notifier(stop)
 
   -- MAME 0.253 and older compatibility
   elseif emu.register_start ~= nil and emu.register_stop ~= nil then
 
-    start_handler = emu.register_start
-    stop_handler = emu.register_stop
-    frame_handler = emu.register_frame
+    -- start_handler = emu.register_start
+    -- stop_handler = emu.register_stop
+    -- frame_handler = emu.register_frame
 
   else
     -- MAME version not compatible (probably can't even load LUA plugins anyways)
