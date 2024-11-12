@@ -1,0 +1,30 @@
+name: 'Wrap release in folder'
+on:
+  release:
+    types: [published]
+
+jobs:
+  wrap-release:
+    runs-on: ubuntu-latest
+    steps:
+      # Check the code
+      - name: Checkout repo
+        uses: actions/checkout@v4.2.1
+
+      # Create a folder and move the files inside
+      - name: Create folder and move files
+        run: |
+          mkdir skipstartupframes
+          mv * skipstartupframes || true
+
+      # Create a zip of the folder
+      - name: Create ZIP file of the folder
+        run: zip -r skipstartupframes.zip skipstartupframes
+
+      # Upload the zip file
+      - name: Upload the zip file into the release
+        uses: alexellis/upload-assets@0.4.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          asset_paths: '["./skipstartupframes.zip"]'
