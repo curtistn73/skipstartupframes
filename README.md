@@ -25,7 +25,7 @@ The plugin temporarily unthrottles the framerate of a game at startup until a ce
 
    ![](media/plugin-options.jpg)
 
-## 2004 Legacy
+## 2004 BYOAC Legacy
 
 Skip Startup Frames is not a new concept and not my idea. It was actually originally a MAME C++ patch that originated back in [early 2004](https://www.retroblast.com/archives/a-200403.html) by Alan Kamrowski II. It made it's way into some long-forgotten forks of MAME like NoNameMAME and BuddaMAME but has now been reborn as an easy-to-install MAME Plugin!
 
@@ -60,8 +60,38 @@ The majority of startup frames are most likely still accurate from 2004 but a lo
 
 ## Debug Mode
 
-TBD
+In order to facilitate determining accurate startup frames to use in `ssf.txt` the plugin includes an optional "debug mode" that prints out the frame numbers on the screen. Just open `options.cfg` and change `debug` to `true`.
+
+![](media/debug.gif)
+
+Also included is `debugSpeed` in `options.cfg` that can put the game in slow-motion during debug mode. A value of `1` is normal speed. A low value like `0.25` is slow-motion.
 
 ## Options
 
-TBD
+This plugin includes a `options.cfg` with various values to adjust (Restart MAME after making changes)
+
+- `blackout` - _boolean_
+
+  - Whether or not to black out the screen while skipping startup frames.
+  - The plugin still renders the startup frames. This option just makes the screen black during the startup. Turn this option off if you want to see the unthrottled startup frames.
+  - Default: `true`
+
+- `mute` - _boolean_
+
+  - Whether or not to mute the audio while skipping startup frames.
+  - Default: `true`
+
+- `parentFallback` - _boolean_
+
+  - If a rom is a clone and is not found in `ssf.txt`, fallback to using the parent rom's startup frames from `ssf.txt`.
+  - Default: `true`
+
+- `debug` - _boolean_
+
+  - Enable debug mode to show frame numbers in game in order to help determine accurate startup frame values to use for roms.
+  - Default: `false`
+
+- `debugSpeed` - _float_
+  - Used to slowdown game speed/playback while in debug mode.
+  - `1.0` is normal speed. Lower numbers like `0.25` will make the game run in slow-motion.
+  - Default: `0.25`

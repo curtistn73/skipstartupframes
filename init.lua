@@ -5,48 +5,40 @@ local plugin_directory = manager.plugins['skipstartupframes'].directory
 local json = require('json')
 local skipstartupframes = json.parse(io.open(plugin_directory .. '/plugin.json'):read('*a')).plugin
 
-local settings = {}
-
--- Default settings
--- local settings_defaults = {
---   comments = true,
---   output = "cfg_generated",
---   run_at_start = false,
---   run_at_end = true,
---   overwrite = true
--- }
-
--- local settings_path = plugin_directory .. "/settings.json"
-
--- -- Open settings file
--- local settings_file = io.open(settings_path, "r")
-
--- -- If settings file doesn't exist, use default settings
--- if settings_file == nil then
---   settings = settings_defaults
--- else
---   -- Parse settings file
---   settings = json.parse(settings_file:read("*a"))
-
---   -- Add any missing settings from defaults and fix any wrong types
---   for k,v in pairs(settings_defaults) do
---     if (settings[k] == nil or type(settings[k]) ~= type(v)) then
---       settings[k] = v
---     end
---   end
--- end
-
 -- Notifiers
 local startNotifier = nil
 local stopNotifier = nil
 
 function skipstartupframes.startplugin()
-  -- Settings
-  local blackout = true
-  local mute = true
-  local parentFallback = true
-  local debug = false
-  local debugSpeed = 0.25
+  local options = {}
+
+  -- Default options
+  local defaultoptions = {
+    blackout = true,
+    mute = true,
+    parentFallback = true,
+    debug = false,
+    debugSpeed = 0.25
+  }
+
+  -- Open options file
+  local options_path = plugin_directory .. "/options.cfg"
+  local options_file = io.open(options_path, "r")
+
+  -- If options file doesn't exist, use default options
+  if options_file == nil then
+    options = defaultoptions
+  else
+    -- Parse options file
+    options = json.parse(options_file:read("*a"))
+
+    -- Add any missing options from defaults and fix any wrong types
+    for k,v in pairs(defaultoptions) do
+      if (options[k] == nil or type(options[k]) ~= type(v)) then
+        options[k] = v
+      end
+    end
+  end
 
   -- Find the frames file
   local frames_path = plugin_directory .. "/ssf.txt"
@@ -90,10 +82,10 @@ function skipstartupframes.startplugin()
     local frameTarget = frames[rom]
 
     -- If the rom was not found in SSF.txt...
-    if frameTarget == nil and not debug then
+    if frameTarget == nil and not options.debug then
 
       -- If parent rom fallback is disabled, don't do anything
-      if not parentFallback then
+      if not options.parentFallback then
         return
       end
 
@@ -118,18 +110,18 @@ function skipstartupframes.startplugin()
     local screen = manager.machine.screens[':screen']
 
     -- Enable throttling
-    if not debug then
+    if not options.debug then
       manager.machine.video.throttled = false
     end
 
     -- Mute sound
-    if mute and not debug then
+    if options.mute and not options.debug then
       manager.machine.sound.system_mute = true
     end
 
     -- Slow-Motion Debug Mode
-    if debug and debugSpeed ~= 1 then
-      manager.machine.video.throttle_rate = debugSpeed
+    if options.debug and options.debugSpeed ~= 1 then
+      manager.machine.video.throttle_rate = options.debugSpeed
     end
 
     -- Starting frame
@@ -138,22 +130,22 @@ function skipstartupframes.startplugin()
     -- Process each frame
     process_frame = function()
       -- Draw debug frame text if in debug mode
-      if debug then
+      if options.debug then
         screen:draw_text(0, 0, "ROM: "..rom.." Frame: "..frame, 0xffffffff, 0xff000000)
       end
 
       -- Black out screen only when not in debug mode
-      if blackout and not debug then
+      if options.blackout and not options.debug then
         screen:draw_box(0, 0, screen.width, screen.height, 0x00000000, 0xff000000)
       end
 
       -- Iterate frame count only when not in debug mode and machine is not paused
-      if not debug or not manager.machine.paused then
+      if not options.debug or not manager.machine.paused then
         frame = frame + 1
       end
 
       -- Frame target reached
-      if not debug and frame >= frameTarget then
+      if not options.debug and frame >= frameTarget then
 
         -- Re-enable throttling
         manager.machine.video.throttled = true
@@ -172,9 +164,6 @@ function skipstartupframes.startplugin()
   local stop = function()
     process_frame = function() end
   end
-
-
-
 
   -- Setup Plugin Options Menu
   -- emu.register_menu(menu_callback, menu_populate, _p("plugin-skipstartupframes", "Skip Startup Frames"))
