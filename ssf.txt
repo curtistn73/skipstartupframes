@@ -842,10 +842,10 @@ gaplus,480
 gardia,1114
 garou,243
 garyoret,41
-gaunt2,732
+gaunt2,95
 gauntdl,3812
 gauntleg,449
-gauntlet,9357
+gauntlet,110
 gaxeduel,0
 gberet,196
 gbusters,413
