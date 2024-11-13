@@ -31,7 +31,10 @@ Skip Startup Frames is not a new concept and not my idea. It was actually origin
 
 ## Requirements
 
-**MAME 0.253** (released 30 Mar 2023) or newer is required
+This plugin is compatibile with:
+
+- **MAME 0.253** or newer
+- **Arcade64 0.253** or newer
 
 ## How does it work?
 
