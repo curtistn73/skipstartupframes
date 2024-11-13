@@ -29,6 +29,10 @@ The plugin temporarily unthrottles the framerate of a game at startup until a ce
 
 Skip Startup Frames is not a new concept and not my idea. It was actually originally a MAME C++ patch that originated back in [early 2004](https://www.retroblast.com/archives/a-200403.html) by Alan Kamrowski II. It made it's way into some long-forgotten forks of MAME like NoNameMAME and BuddaMAME but has now been reborn as an easy-to-install MAME Plugin!
 
+## Requirements
+
+**MAME 0.253** (released 30 Mar 2023) or newer is required
+
 ## How does it work?
 
 Every rom has a different startup procedure and different number of startup frames that need to be skipped. The solution to this problem is an included file called `ssf.txt` which is a simple text file containing rom names and frames to be skipped. This plugin reads in the file and determines how many frames to skip for the loaded rom.
