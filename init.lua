@@ -129,22 +129,24 @@ function skipstartupframes.startplugin()
       end
     end
 
-    -- Screen info
-    local screen = manager.machine.screens[':screen']
+    -- Variable references
+    local screens = manager.machine.screens
+    local video = manager.machine.video
+    local sound = manager.machine.sound
 
     -- Enable throttling
     if not options.debug then
-      manager.machine.video.throttled = false
+      video.throttled = false
     end
 
     -- Mute sound
     if options.mute and not options.debug then
-      manager.machine.sound.system_mute = true
+      sound.system_mute = true
     end
 
     -- Slow-Motion Debug Mode
     if options.debug and options.debugSlowMotion then
-      manager.machine.video.throttle_rate = slowMotionRate
+      video.throttle_rate = slowMotionRate
     end
 
     -- Starting frame
@@ -153,13 +155,17 @@ function skipstartupframes.startplugin()
     -- Process each frame
     process_frame = function()
       -- Draw debug frame text if in debug mode
-      if options.debug then
-        screen:draw_text(0, 0, "ROM: "..rom.." Frame: "..frame, 0xffffffff, 0xff000000)
+      if options.debug and #screens > 0 then
+        for _,screen in pairs(screens) do
+          screen:draw_text(0, 0, "ROM: "..rom.." Frame: "..frame, 0xffffffff, 0xff000000)
+        end
       end
 
       -- Black out screen only when not in debug mode
-      if options.blackout and not options.debug then
-        screen:draw_box(0, 0, screen.width, screen.height, 0x00000000, 0xff000000)
+      if options.blackout and not options.debug and #screens > 0 then
+        for _,screen in pairs(screens) do
+          screen:draw_box(0, 0, screen.width, screen.height, 0x00000000, 0xff000000)
+        end
       end
 
       -- Iterate frame count only when not in debug mode and machine is not paused
@@ -171,13 +177,13 @@ function skipstartupframes.startplugin()
       if not options.debug and frame >= frameTarget then
 
         -- Re-enable throttling
-        manager.machine.video.throttled = true
+        video.throttled = true
 
         -- Unmute sound
-        manager.machine.sound.system_mute = false
+        sound.system_mute = false
 
         -- Reset throttle rate
-        manager.machine.video.throttle_rate = 1
+        video.throttle_rate = 1
 
         -- Reset frame processing function to do nothing when frame target is reached
         process_frame = function() end
