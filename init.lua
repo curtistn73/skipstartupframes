@@ -8,22 +8,25 @@ local skipstartupframes = json.parse(io.open(plugin_directory .. '/plugin.json')
 -- Notifiers
 local startNotifier = nil
 local stopNotifier = nil
+local menuNotifier = nil
 
-function skipstartupframes.startplugin()
+local slowMotionRate = 0.3
+
+-- Default options
+local defaultoptions = {
+  blackout = true,
+  mute = true,
+  parentFallback = true,
+  debug = false,
+  debugSlowMotion = false
+}
+
+-- Load options from options.cfg
+local load_options = function()
   local options = {}
 
-  -- Default options
-  local defaultoptions = {
-    blackout = true,
-    mute = true,
-    parentFallback = true,
-    debug = false,
-    debugSpeed = 0.25
-  }
-
-  -- Open options file
-  local options_path = plugin_directory .. "/options.cfg"
-  local options_file = io.open(options_path, "r")
+  -- Open options file for reading
+  local options_file = io.open(plugin_directory .. "/options.cfg", "r")
 
   -- If options file doesn't exist, use default options
   if options_file == nil then
@@ -32,13 +35,32 @@ function skipstartupframes.startplugin()
     -- Parse options file
     options = json.parse(options_file:read("*a"))
 
-    -- Add any missing options from defaults and fix any wrong types
     for k,v in pairs(defaultoptions) do
+      -- Fix incorrect types and add missing options
       if (options[k] == nil or type(options[k]) ~= type(v)) then
         options[k] = v
       end
     end
   end
+
+  options_file:close()
+
+  return options
+end
+
+-- Save options to options.cfg
+local save_options = function(options)
+
+  -- Open options file for reading
+  local options_file = io.open(plugin_directory .. "/options.cfg", "w")
+
+  local data = json.stringify(options, {indent = true})
+  options_file:write(data)
+  options_file:close()
+end
+
+function skipstartupframes.startplugin()
+  local options = load_options()
 
   -- Find the frames file
   local frames_path = plugin_directory .. "/ssf.txt"
@@ -70,6 +92,7 @@ function skipstartupframes.startplugin()
     process_frame()
   end)
 
+  -- Run when MAME begins emulation
   local start = function()
     local rom = emu.romname()
 
@@ -120,8 +143,8 @@ function skipstartupframes.startplugin()
     end
 
     -- Slow-Motion Debug Mode
-    if options.debug and options.debugSpeed ~= 1 then
-      manager.machine.video.throttle_rate = options.debugSpeed
+    if options.debug and options.debugSlowMotion then
+      manager.machine.video.throttle_rate = slowMotionRate
     end
 
     -- Starting frame
@@ -153,6 +176,9 @@ function skipstartupframes.startplugin()
         -- Unmute sound
         manager.machine.sound.system_mute = false
 
+        -- Reset throttle rate
+        manager.machine.video.throttle_rate = 1
+
         -- Reset frame processing function to do nothing when frame target is reached
         process_frame = function() end
       end
@@ -161,38 +187,97 @@ function skipstartupframes.startplugin()
     return
   end
 
+  -- Run when MAME stops emulation
   local stop = function()
     process_frame = function() end
   end
 
-  -- Setup Plugin Options Menu
-  -- emu.register_menu(menu_callback, menu_populate, _p("plugin-skipstartupframes", "Skip Startup Frames"))
+  -- Option menu variables
+  local menuSelection = 3
+  local blackoutIndex
+  local muteIndex
+  local parentFallbackIndex
+  local debugIndex
+  local debugSlowMotionIndex
 
-  -- local menu_populate = function()
+  -- Option menu creation/population
+  local menu_populate = function()
+    local result = {}
 
-  --   local mute
-  --   local blackout
-  --   local debug
+    table.insert(result, { 'Skip Startup Frames', '', 'off' })
+    table.insert(result, { '---', '', '' })
 
-  --   local result = {}
-  --   table.insert(result, { 'Skip Startup Frames', '', 'off' })
-  --   table.insert(result, { '---', '', '' })
-  --   -- table.insert(result, { _p("plugin-skipstartupframes", "Mute Sound"), mute, "off" })
-  --   -- table.insert(result, { _p("plugin-skipstartupframes", "Black Out Screen"), blackout, "off" })
-  --   -- table.insert(result, { _p("plugin-skipstartupframes", "Debug"), debug, "off" })
+    table.insert(result, { _p("plugin-skipstartupframes", "Black out screen during startup"), options.blackout and 'Yes' or 'No', 'lr' })
+    blackoutIndex = #result
 
-  --   return result
-  -- end
+    table.insert(result, { _p("plugin-skipstartupframes", "Mute audio during startup"), options.mute and 'Yes' or 'No', 'lr' })
+    muteIndex = #result
 
-  -- local menu_callback = function(index, entry)
-  --   print(index, entry)
-  -- end
+    table.insert(result, { _p("plugin-skipstartupframes", "Fallback to parent rom startup frames"), options.parentFallback and 'Yes' or 'No', 'lr' })
+    parentFallbackIndex = #result
+
+    table.insert(result, { _p("plugin-skipstartupframes", "Debug Mode"), options.debug and 'Yes' or 'No', 'lr' })
+    debugIndex = #result
+
+    table.insert(result, { _p("plugin-skipstartupframes", "Slow Motion during Debug Mode"), options.debugSlowMotion and 'Yes' or 'No', 'lr' })
+    debugSlowMotionIndex = #result
+
+    return result, menuSelection
+  end
+
+  -- Option menu event callback
+  local menu_callback = function(index, event)
+    menuSelection = index
+
+    -- Blackout Screen Option
+    if index == blackoutIndex then
+      if event == 'left' or event == 'right' then
+        options.blackout = not options.blackout
+        save_options(options)
+      end
+      return true
+
+    -- Mute Audio Option
+    elseif index == muteIndex then
+      if event == 'left' or event == 'right' then
+        options.mute = not options.mute
+        save_options(options)
+      end
+      return true
+
+    -- Parent ROM Fallback Option
+    elseif index == parentFallbackIndex then
+      if event == 'left' or event == 'right' then
+        options.parentFallback = not options.parentFallback
+        save_options(options)
+      end
+      return true
+
+    -- Debug Mode Option
+    elseif index == debugIndex then
+      if event == 'left' or event == 'right' then
+        options.debug = not options.debug
+        save_options(options)
+      end
+      return true
+
+    -- Debug Slow Motion Option
+    elseif index == debugSlowMotionIndex then
+      if event == 'left' or event == 'right' then
+        options.debugSlowMotion = not options.debugSlowMotion
+        save_options(options)
+      end
+      return true
+
+    end
+  end
 
   -- MAME 0.254 and newer compatibility check
   if emu.add_machine_reset_notifier ~= nil and emu.add_machine_stop_notifier ~= nil then
 
     startNotifier = emu.add_machine_reset_notifier(start)
     stopNotifier = emu.add_machine_stop_notifier(stop)
+    menuNotifier = emu.register_menu(menu_callback, menu_populate, _p("plugin-skipstartupframes", "Skip Startup Frames"))
 
   else
     -- MAME version not compatible (probably can't even load LUA plugins anyways)

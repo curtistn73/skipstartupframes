@@ -4,13 +4,13 @@ This is a LUA Plugin for [MAME](https://www.mamedev.org/) that automatically ski
 
 ## What does it do?
 
-The plugin temporarily unthrottles the framerate of a game at startup until a certain number of frames has been reached and then returns the framerate back to normal. The plugin also temporarily mutes the audio and blacks out the screen. The faster the computer used, the faster the unthrottled startup time will be.
+The plugin temporarily unthrottles the framerate of a game at startup until a certain number of frames has been reached and then returns the framerate back to normal. The plugin also temporarily mutes the audio and blacks out the screen. The faster the computer, the faster the unthrottled startup time will be.
 
 ## `galaga` startup example
 
-| Before: ~12 sec startup time | After: ~1 sec startup time |
-| ---------------------------- | -------------------------- |
-| ![test](media/before.gif)    | ![](media/after.gif)       |
+| Before: ~12 sec startup time               | After: ~1 sec startup time              |
+| ------------------------------------------ | --------------------------------------- |
+| ![normal galaga startup](media/before.gif) | ![fast galaga startup](media/after.gif) |
 
 ## Installation instructions
 
@@ -23,7 +23,7 @@ The plugin temporarily unthrottles the framerate of a game at startup until a ce
    - Add `skipstartupframes` to the `plugin` option in `mame.ini`
    - Run MAME with the command-line option `-plugin skipstartupframes`
 
-   ![](media/plugin-options.jpg)
+   ![MAME plugin toggle menu](media/plugin-menu.jpg)
 
 ## 2004 BYOAC Legacy
 
@@ -56,42 +56,41 @@ rallyx,760
 `ssf.txt` is an old file that was [created back in 2004](https://forum.arcadecontrols.com/index.php/topic,48674.msg) and was the culmination of work by many members of the [BYOAC forum](https://forum.arcadecontrols.com/) who examined 1000's of games and recorded the correct number of frames to be skipped.
 
 The majority of startup frames are most likely still accurate from 2004 but a lot can change in 20+ years. Some rom's might have been changed or redumped, new roms were added to MAME, etc. If you find any startup frames in `ssf.txt` to be inaccurate or missing, you can easily contribute changes to the project:
-[CLICK HERE TO EDIT `ssf.txt`](https://github.com/Jakobud/skipstartupframes/edit/main/ssf.txt). Make your edits, commit your changes and then create a pull request. I will examine the change and either approve or reject it.
+[CLICK HERE TO EDIT `ssf.txt`](https://github.com/Jakobud/skipstartupframes/edit/main/ssf.txt). Make your edits, commit your changes and then create a pull request into the `develop` branch. I will examine the change and either approve or reject it.
 
 ## Debug Mode
 
-In order to facilitate determining accurate startup frames to use in `ssf.txt` the plugin includes an optional "debug mode" that prints out the frame numbers on the screen. Just open `options.cfg` and change `debug` to `true`.
+In order to facilitate determining accurate startup frames to use in `ssf.txt` the plugin includes an optional "debug mode" that prints out the frame numbers on the screen. See the **Options section** for more details.
 
-![](media/debug.gif)
-
-Also included is `debugSpeed` in `options.cfg` that can put the game in slow-motion during debug mode. A value of `1` is normal speed. A low value like `0.25` is slow-motion.
+![Skip Startup Frames Debug Mode](media/debug.gif)
 
 ## Options
 
-This plugin includes a `options.cfg` with various values to adjust (Restart MAME after making changes)
+| In-Game Menu                              |                                                               |
+| ----------------------------------------- | ------------------------------------------------------------- |
+| ![Mame In-Game Menu](media/game-menu.png) | ![Skip Startup Frames Options](media/plugin-options-menu.png) |
 
-- `blackout` - _boolean_
+- `blackout` - _Yes/No_
 
   - Whether or not to black out the screen while skipping startup frames.
   - The plugin still renders the startup frames. This option just makes the screen black during the startup. Turn this option off if you want to see the unthrottled startup frames.
-  - Default: `true`
+  - Default: `Yes`
 
-- `mute` - _boolean_
+- `mute` - _Yes/No_
 
   - Whether or not to mute the audio while skipping startup frames.
-  - Default: `true`
+  - Default: `Yes`
 
-- `parentFallback` - _boolean_
+- `parentFallback` - _Yes/No_
 
   - If a rom is a clone and is not found in `ssf.txt`, fallback to using the parent rom's startup frames from `ssf.txt`.
-  - Default: `true`
+  - Default: `Yes`
 
-- `debug` - _boolean_
+- `debug` - _Yes/No_
 
   - Enable debug mode to show frame numbers in game in order to help determine accurate startup frame values to use for roms.
-  - Default: `false`
+  - Default: `No`
 
-- `debugSpeed` - _float_
+- `debugSlowMotion` - _Yes/No_
   - Used to slowdown game speed/playback while in debug mode.
-  - `1.0` is normal speed. Lower numbers like `0.25` will make the game run in slow-motion.
-  - Default: `0.25`
+  - Default: `No`
