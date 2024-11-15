@@ -51,6 +51,7 @@ aircombj,4209
 airduel,29
 airwolf,614
 ajax,450
+akatana,950
 akiss,42
 alexkidd,13
 alibaba,1252
@@ -410,7 +411,7 @@ chinhero,416
 chinmoku,1029
 chokchok,17
 chopper,250
-chplft,2767
+choplift,3180
 chplftb,2500
 chqflag,512
 chukatai,14275
@@ -563,6 +564,8 @@ ddcrew,30
 ddenlovr,534
 ddonpach,1800
 ddp2,1206
+ddp3,0
+ddpsdoj,950
 ddragon,819
 ddragon2,37
 ddragon3,50
@@ -810,6 +813,8 @@ funkybee,79
 funkyjet,48
 funnymou,3407
 funybubl,48
+futari15,1400
+futaribl,1400
 futspy,161
 ga2,16
 gaia,842
@@ -972,7 +977,7 @@ gwar,252
 gwarrior,4124
 gypsyjug,16804
 gyrodine,270
-gyruss,0
+gyruss,180
 hachamf,0
 hachoo,209
 hal21,770
@@ -1478,6 +1483,7 @@ mmaze,194
 mmehyou,750
 mmonkey,47
 mmpanic,267
+mmpork,780
 mnight,301
 mofflott,657
 moguchan,94
@@ -1570,6 +1576,8 @@ mt_tlbba,0
 mt_wcsoc,0
 mugsmash,426
 multchmp,657
+mushisam,1200
+mushitam,1890
 musobana,415
 mustache,302
 mustang,26
@@ -1829,6 +1837,7 @@ pigout,17
 pigskin,2435
 pinbo,523
 pingpong,391
+pinkswts,934
 pipedrm,1570
 pipibibs,615
 pirates,122
