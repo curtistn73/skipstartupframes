@@ -563,6 +563,8 @@ ddcrew,30
 ddenlovr,534
 ddonpach,1800
 ddp2,1206
+ddp3,0
+ddpdfk,1350
 ddragon,819
 ddragon2,37
 ddragon3,50
@@ -575,6 +577,7 @@ ddux,6
 deadang,134
 deadconx,394
 deadeye,0
+deathsml,1350
 decathlt,0
 defender,720
 demndrgn,25
@@ -592,6 +595,7 @@ devilw,1079
 devstors,277
 devzone,28
 dfeveron,1632
+dfkbl,1290
 dharma,197
 diamond,370
 diehard,0
@@ -658,6 +662,7 @@ drmicro,35
 drtomy,159
 drtoppel,105
 dsaber,0
+dsmbl,2090
 dsoccr94,1740
 dspirit,180
 dstlk,1016
@@ -703,6 +708,8 @@ ertictac,2507
 esb,559
 esckids,2132
 espial,1651
+espgal,0
+espgal2,1370
 esprade,1060
 eswat,124
 eto,125
@@ -1075,6 +1082,7 @@ hyprdriv,2627
 hyprduel,0
 hypreac2,941
 hypreact,644
+ibara,790
 iceclimb,8
 iceclmrj,8
 ichidant,738
